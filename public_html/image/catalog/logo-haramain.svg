@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 96" width="480" height="96" role="img" aria-label="haramain.online">
+  <title>haramain.online</title>
+  <g fill="none" stroke="#EE4B18" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M46 74V38l22-16 22 16v36"/>
+    <path d="M56 74V52h24v22"/>
+    <path d="M68 22V10"/>
+  </g>
+  <circle cx="68" cy="8" r="4" fill="#EE4B18"/>
+  <text x="112" y="60" font-family="Montserrat, 'Helvetica Neue', Arial, sans-serif" font-size="42" font-weight="700" fill="#FFFFFF" letter-spacing="0.5">haramain</text>
+  <text x="112" y="82" font-family="Montserrat, 'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="500" fill="#EE4B18" letter-spacing="4.5">.ONLINE</text>
+</svg>

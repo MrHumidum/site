@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<modification>
+  <name>DEV-OPENCART.COM — SVG Support</name>
+<version>4.2.2</version>
+<link>https://dev-opencart.com</link>
+<author>DEV-OPENCART.COM</author>
+<code>dev_opencart_com_svg_support</code>
+	
+  <file path="admin/model/tool/image.php">
+	<operation error="skip">
+      <search><![CDATA[IMAGETYPE_GIF)))]]></search>
+      <add position="replace"><![CDATA[IMAGETYPE_GIF)) && $image_type)]]></add>
+    </operation>
+    <operation error="skip">
+      <search><![CDATA[$this->request->server['HTTPS']]]></search>
+      <add position="before"><![CDATA[
+		if (mime_content_type(DIR_IMAGE . $image_old) != 'image/svg+xml' && in_array($extension, array('svg', 'SVG'))) {
+			$dom = new DOMDocument;
+			$dom->loadXML(file_get_contents(DIR_IMAGE . $image_old));
+
+			if ($dom) {
+				$svg = simplexml_import_dom($dom);
+			}
+		} elseif (mime_content_type(DIR_IMAGE . $image_old) == 'image/svg+xml') {
+			$svg = simplexml_load_file(DIR_IMAGE . $image_old);
+		}
+
+		if (isset($svg)) {
+			$svg['width'] = $width;
+			$svg['height'] = $height;
+
+			$svg->asXML(DIR_IMAGE . $image_new);
+		}
+      ]]></add>
+    </operation>
+  </file>
+  
+  <file path="catalog/model/tool/image.php">
+	<operation error="skip">
+      <search><![CDATA[IMAGETYPE_GIF)))]]></search>
+      <add position="replace"><![CDATA[IMAGETYPE_GIF)) && $image_type)]]></add>
+    </operation>
+    <operation error="skip">
+      <search><![CDATA[$this->request->server['HTTPS']]]></search>
+      <add position="before"><![CDATA[
+		if (mime_content_type(DIR_IMAGE . $image_old) != 'image/svg+xml' && in_array($extension, array('svg', 'SVG'))) {
+			$dom = new DOMDocument;
+			$dom->loadXML(file_get_contents(DIR_IMAGE . $image_old));
+
+			if ($dom) {
+				$svg = simplexml_import_dom($dom);
+			}
+		} elseif (mime_content_type(DIR_IMAGE . $image_old) == 'image/svg+xml') {
+			$svg = simplexml_load_file(DIR_IMAGE . $image_old);
+		}
+
+		if (isset($svg)) {
+			if ($svg['width'] && $svg['height']) {
+				$width_orig = (string)$svg['width'];
+				$height_orig = (string)$svg['height'];
+
+				if (is_numeric($width_orig) && is_numeric($height_orig)) {
+					$width_orig = (string)$svg['width'];
+					$height_orig = (string)$svg['height'];
+				} elseif (substr($width_orig, -2) == 'px' && substr($height_orig, -2) == 'px') {
+					$width_orig = str_replace('px', '', $width_orig);
+					$height_orig = str_replace('px', '', $height_orig);
+
+					if (!is_numeric($width_orig) && !is_numeric($height_orig)) {
+						$width_orig = '';
+						$height_orig = '';
+					}
+				}
+			} elseif ($svg['viewBox']) {
+				$viewbox = explode(' ', $svg['viewBox']);
+
+				$height_orig = array_pop($viewbox);
+				$width_orig = array_pop($viewbox);
+			} else {
+				$width_orig = '';
+				$height_orig = '';
+			}
+
+			if (($width_orig && $height_orig) && ($width_orig != $width || $height_orig != $height)) {
+				$scale_w = $width / $width_orig;
+				$scale_h = $height / $height_orig;
+
+				$scale = min($scale_w, $scale_h);
+
+				$new_width = (int)($width_orig * $scale);
+				$new_height = (int)($height_orig * $scale);
+
+				$svg['width'] = $new_width;
+				$svg['height'] = $new_height;
+
+				$svg->asXML(DIR_IMAGE . $image_new);
+			} else {
+				$svg['width'] = $width;
+				$svg['height'] = $height;
+
+				$svg->asXML(DIR_IMAGE . $image_new);
+			}
+		}
+      ]]></add>
+    </operation>
+  </file>
+  
+  <file path="admin/controller/common/filemanager.php">
+	<operation error="skip">
+      <search><![CDATA[{jpg,jpeg,png,gif,JPG,JPEG,PNG,GIF}]]></search>
+      <add position="replace"><![CDATA[{jpg,jpeg,png,gif,svg,JPG,JPEG,PNG,GIF,SVG}]]></add>
+    </operation>
+	<operation error="skip">
+      <search><![CDATA[
+						'png'
+      ]]></search>
+      <add position="before"><![CDATA[
+						'svg',
+      ]]></add>
+    </operation>
+	<operation error="skip">
+      <search><![CDATA[
+						'image/gif'
+      ]]></search>
+      <add position="before"><![CDATA[
+						'image/svg+xml',
+      ]]></add>
+    </operation>
+  </file>
+</modification>

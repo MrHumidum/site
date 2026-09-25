@@ -1,0 +1,14 @@
+services:
+  web:
+    build:
+      context: .
+    restart: unless-stopped
+    env_file:
+      - db.env
+    ports:
+      - "8099:80"
+    volumes:
+      - ../public_html:/var/www/html
+    depends_on:
+      db:
+        condition: service_healthy

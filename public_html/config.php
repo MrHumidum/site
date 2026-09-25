@@ -1,0 +1,21 @@
+<?php
+define('HTTP_SERVER', 'http://45.133.251.252:8099/');
+define('HTTPS_SERVER', 'http://45.133.251.252:8099/');
+define('DIR_APPLICATION', '/var/www/html/catalog/');
+define('DIR_SYSTEM', '/var/www/html/system/');
+define('DIR_IMAGE', '/var/www/html/image/');
+define('DIR_LANGUAGE', '/var/www/html/catalog/language/');
+define('DIR_TEMPLATE', '/var/www/html/catalog/view/theme/');
+define('DIR_CONFIG', '/var/www/html/system/config/');
+define('DIR_CACHE', '/var/www/html/system/storage/cache/');
+define('DIR_DOWNLOAD', '/var/www/html/system/storage/download/');
+define('DIR_LOGS', '/var/www/html/system/storage/logs/');
+define('DIR_MODIFICATION', '/var/www/html/system/storage/modification/');
+define('DIR_UPLOAD', '/var/www/html/system/storage/upload/');
+define('DB_DRIVER', 'mysqli');
+define('DB_HOSTNAME', 'db');
+define('DB_PORT', '3306');
+define('DB_PREFIX', 'oc_');
+define('DB_USERNAME', getenv('MARIADB_USER'));
+define('DB_PASSWORD', getenv('MARIADB_PASSWORD'));
+define('DB_DATABASE', getenv('MARIADB_DATABASE'));
