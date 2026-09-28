@@ -9,15 +9,32 @@
 </div>
 <script>
 (function($) {
+  var uploading = false;
+  $(function() {
+    $('#form-product').on('submit', function(event) {
+      if (uploading) {
+        event.preventDefault();
+        $('#seller-photo-message').text('Дождитесь завершения загрузки фотографий.');
+      }
+    });
+  });
   $('#seller-photo').on('change', async function() {
+    if (uploading) { return; }
     var files = Array.from(this.files || []);
     var $buttons = $('#form-product button[type=submit], button[form="form-product"]');
+    if (!files.length) { return; }
+    uploading = true;
+    $(this).prop('disabled', true);
     $buttons.prop('disabled', true);
+    $('#seller-photo-message').text('Загрузка фотографий…');
     try {
       for (var file of files) {
         var form = new FormData(); form.append('file', file); form.append('token', <?php echo json_encode($token); ?>);
-        var json = await $.ajax({url:'index.php?route=add/image/upload',type:'POST',data:form,dataType:'json',processData:false,contentType:false});
-        if (json.error) { $('#seller-photo-message').text(json.error); break; }
+        var json = await $.ajax({url:'index.php?route=add/image/upload',type:'POST',data:form,dataType:'json',processData:false,contentType:false,timeout:60000});
+        if (!json || json.error || typeof json.path !== 'string' || !/^catalog\/sellers\/[0-9]+\/[a-f0-9]+\.(jpg|png)$/.test(json.path)) {
+          $('#seller-photo-message').text(json && json.error ? json.error : 'Не удалось загрузить фотографию. Повторите попытку.');
+          break;
+        }
         if (!$('#input-image').val()) {
           $('#input-image').val(json.path); $('#thumb-image img').attr('src','image/'+json.path);
         } else {
@@ -33,7 +50,11 @@
         $('#seller-photo-message').text('Фотография загружена. Сохраните товар.');
       }
     } catch(e) { $('#seller-photo-message').text('Не удалось загрузить фотографию. Повторите попытку.'); }
-    finally { $buttons.prop('disabled',false); }
+    finally {
+      uploading = false;
+      $(this).val('').prop('disabled', false);
+      $buttons.prop('disabled', false);
+    }
   });
 })(jQuery);
 </script>

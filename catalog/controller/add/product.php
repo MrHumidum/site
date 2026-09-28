@@ -52,7 +52,7 @@ $data['acc'] = $this->load->controller('extension/module/seller');
 		$this->load->model('add/product');
 
 		if (($this->request->server['REQUEST_METHOD'] == 'POST') && $this->validateForm()) {
-			$this->model_add_product->addProduct($this->request->post);
+			$this->model_add_product->addProduct($this->getCreationData());
 
 			$this->session->data['success'] = $this->language->get('text_success');
 
@@ -1096,6 +1096,10 @@ $data['acc'] = $this->load->controller('extension/module/seller');
 			$data['error_keyword'] = '';
 		}
 
+		foreach (array('price', 'pricespeclial', 'category') as $field) {
+			$data['error_' . $field] = $this->error[$field] ?? '';
+		}
+
 		if (isset($this->error['city'])) {
 			$data['error_city'] = $this->error['city'];
 		} else {
@@ -1700,6 +1704,10 @@ $data['pricespeclial'] = '';
 			);
 		}
 		
+		if (isset($this->request->post['pricespeclial'])) {
+			$data['pricespeclial'] = $this->request->post['pricespeclial'];
+		}
+
 		// Image
 		if (isset($this->request->post['image'])) {
 			$data['image'] = $this->request->post['image'];
@@ -1913,22 +1921,70 @@ $data['easyphoto_form'] = $this->load->view('add/images', $data);
 		);
 	}
 
+    // Only optional fields read unconditionally by addProduct; match getForm defaults.
+    protected function getCreationData() {
+        $data = $this->request->post + array(
+            'sku' => '', 'upc' => '', 'ean' => '', 'jan' => '', 'isbn' => '', 'mpn' => '',
+            'quantity' => 1, 'minimum' => 1, 'subtract' => 1, 'stock_status_id' => 0,
+            'date_available' => date('Y-m-d'), 'shipping' => 1, 'points' => 0,
+            'weight' => 0, 'weight_class_id' => $this->config->get('config_weight_class_id'),
+            'length' => 0, 'width' => 0, 'height' => 0,
+            'length_class_id' => $this->config->get('config_length_class_id'),
+            'status' => 1, 'noindex' => 1, 'tax_class_id' => 0,
+            'product_store' => array(0)
+        );
+        return $data;
+    }
+
     protected function validateForm() {
-        if (!isset($this->request->post['price']) || !is_numeric($this->request->post['price']) || !is_finite((float)$this->request->post['price']) || (float)$this->request->post['price'] < 0) {
-            $this->error['warning'] = 'Укажите корректную цену в риалах.';
+        foreach (array('price', 'pricespeclial') as $field) {
+            $value = $this->request->post[$field] ?? '';
+            if (($field === 'price' || $value !== '') &&
+                (!is_scalar($value) || !is_numeric($value) || !is_finite((float)$value) || (float)$value < 0)) {
+                $this->error[$field] = 'Укажите корректную неотрицательную цену в риалах.';
+            }
+            $this->request->post[$field] = is_scalar($value) ? (string)$value : '';
         }
         $categories = $this->request->post['product_category'] ?? array();
-        if (is_array($categories) && !empty($this->request->post['main_category_id']) && is_scalar($this->request->post['main_category_id'])) {
-            $categories[] = (int)$this->request->post['main_category_id'];
-            $this->request->post['product_category'] = array_values(array_unique($categories));
+        $valid_categories = array();
+        if (!is_array($categories)) {
+            $this->error['category'] = 'Выберите действующую категорию.';
+            $categories = array();
         }
-        if (!is_array($categories) || !$categories) { $this->error['warning'] = 'Выберите категорию товара.'; }
-        else { foreach ($categories as $category_id) {
+        $main_category = $this->request->post['main_category_id'] ?? '0';
+        if ($main_category !== '' && $main_category !== '0' && $main_category !== 0) {
+            $categories[] = $main_category;
+        }
+        foreach ($categories as $category_id) {
+            if (!is_scalar($category_id) || !ctype_digit((string)$category_id) || (int)$category_id < 1) {
+                $this->error['category'] = 'Выберите действующую категорию.';
+                continue;
+            }
             $category = $this->db->query("SELECT category_id FROM " . DB_PREFIX . "category WHERE category_id = '" . (int)$category_id . "' AND status = 1");
-            if (!$category->num_rows) { $this->error['warning'] = 'Выберите действующую категорию.'; }
-        }}
+            if (!$category->num_rows) {
+                $this->error['category'] = 'Выберите действующую категорию.';
+            } else {
+                $valid_categories[] = (int)$category_id;
+            }
+        }
+        $this->request->post['product_category'] = array_values(array_unique($valid_categories));
+        $this->request->post['main_category_id'] = is_scalar($main_category) && in_array((int)$main_category, $valid_categories, true) ? (int)$main_category : 0;
+        if (!$valid_categories) { $this->error['category'] = 'Выберите категорию товара из списка.'; }
         $images = array($this->request->post['image'] ?? '');
-        foreach (($this->request->post['product_image'] ?? array()) as $image) { $images[] = $image['image'] ?? ''; }
+        $additional_images = $this->request->post['product_image'] ?? array();
+        if (!is_array($additional_images)) {
+            $this->error['warning'] = 'Загрузите фотографии через форму товара.';
+            $additional_images = array();
+        }
+        $this->request->post['product_image'] = array();
+        foreach ($additional_images as $image) {
+            if (!is_array($image) || !isset($image['image']) || !is_string($image['image'])) {
+                $this->error['warning'] = 'Загрузите фотографии через форму товара.';
+                continue;
+            }
+            $images[] = $image['image'];
+            $this->request->post['product_image'][] = array('image' => $image['image'], 'sort_order' => (int)($image['sort_order'] ?? 0));
+        }
         $existing = array();
         if (!empty($this->request->get['item_id'])) {
             $product = $this->model_add_product->getProduct($this->request->get['item_id']);
@@ -1938,6 +1994,8 @@ $data['easyphoto_form'] = $this->load->view('add/images', $data);
         foreach ($images as $image) {
             if ($image !== '' && (!is_string($image) || strpos($image, '..') !== false || (!in_array($image, $existing, true) && !preg_match('#^catalog/sellers/' . (int)$this->seller->getId() . '/[a-f0-9]+\.(jpg|png)$#D', $image)))) {
                 $this->error['warning'] = 'Загрузите фотографии через форму товара.';
+                if ($image === ($this->request->post['image'] ?? '')) { $this->request->post['image'] = ''; }
+                $this->request->post['product_image'] = array_values(array_filter($this->request->post['product_image'], function($row) use ($image) { return $row['image'] !== $image; }));
             }
         }
 
@@ -1954,7 +2012,16 @@ $data['easyphoto_form'] = $this->load->view('add/images', $data);
 			}
 		}
 
-		foreach ($this->request->post['product_description'] as $language_id => $value) {
+        $this->load->model('localisation/language');
+        $descriptions = $this->request->post['product_description'] ?? array();
+        $this->request->post['product_description'] = array();
+        foreach ($this->model_localisation_language->getLanguages() as $language) {
+            $language_id = $language['language_id'];
+            $value = is_array($descriptions) && isset($descriptions[$language_id]) && is_array($descriptions[$language_id]) ? $descriptions[$language_id] : array();
+            foreach (array('name', 'description', 'description_mini', 'tag', 'meta_title', 'meta_h1', 'meta_description', 'meta_keyword') as $field) {
+                $value[$field] = isset($value[$field]) && is_string($value[$field]) ? $value[$field] : '';
+            }
+            $this->request->post['product_description'][$language_id] = $value;
 			if ((utf8_strlen($value['name']) < 3) || (utf8_strlen($value['name']) > 255)) {
 				$this->error['name'][$language_id] = $this->language->get('error_name');
 			}
@@ -1968,29 +2035,20 @@ $data['easyphoto_form'] = $this->load->view('add/images', $data);
 			}
 		}
 
+        if (!isset($this->request->post['model']) || !is_string($this->request->post['model'])) { $this->request->post['model'] = ''; }
 		if ((utf8_strlen($this->request->post['model']) < 1) || (utf8_strlen($this->request->post['model']) > 64)) {
 			$this->error['model'] = $this->language->get('error_model');
 		}
 
 		$cities = $this->getCities();
 
-		if (!isset($this->request->post['location']) || !isset($cities[$this->request->post['location']])) {
+		if (!isset($this->request->post['location']) || !is_string($this->request->post['location']) || !isset($cities[$this->request->post['location']])) {
 			$this->error['city'] = $this->language->get('error_city');
+            $this->request->post['location'] = '';
 		}
 
-		if (utf8_strlen($this->request->post['keyword']) > 0) {
-			$this->load->model('add/url_alias');
-
-			$url_alias_info = $this->model_add_url_alias->getUrlAlias($this->request->post['keyword']);
-
-			if ($url_alias_info && isset($this->request->get['item_id']) && $url_alias_info['query'] != 'product_id=' . $this->request->get['item_id']) {
-				$this->error['keyword'] = sprintf($this->language->get('error_keyword'));
-			}
-
-			if ($url_alias_info && !isset($this->request->get['item_id'])) {
-				$this->error['keyword'] = sprintf($this->language->get('error_keyword'));
-			}
-		}
+        // addProduct/editProduct generate the alias from the name and product ID.
+        // A seller-supplied keyword is not persisted and must not block saving.
 
 		if ($this->error && !isset($this->error['warning'])) {
 			$this->error['warning'] = $this->language->get('error_warning');

@@ -52,18 +52,15 @@
           </ul>
           <div class="tab-content">
             <div class="tab-pane active" id="tab-general">
-              <ul class="nav nav-tabs hidden" id="language">
-                <?php foreach ($languages as $language) { ?>
-                <li><a href="#language<?php echo $language['language_id']; ?>" data-toggle="tab"><img src="language/<?php echo $language['code']; ?>/<?php echo $language['code']; ?>.png" title="<?php echo $language['name']; ?>" /> <?php echo $language['name']; ?></a></li>
-                <?php } ?>
-              </ul>
+
               <div class="tab-content">
                 <?php foreach ($languages as $language) { ?>
-                <div class="tab-pane active" id="language<?php echo $language['language_id']; ?>">
+                <div class="form-language" id="language<?php echo $language['language_id']; ?>">
+                  <?php if (count($languages) > 1) { ?><h4><?php echo $language['name']; ?></h4><?php } ?>
                   <div class="form-group required">
                     <label class="col-sm-2 control-label" for="input-name<?php echo $language['language_id']; ?>">Название товары</label>
                     <div class="col-sm-10">
-                      <input type="text" name="product_description[<?php echo $language['language_id']; ?>][name]" value="<?php echo isset($product_description[$language['language_id']]) ? $product_description[$language['language_id']]['name'] : ''; ?>" placeholder="Название товары" id="input-name<?php echo $language['language_id']; ?>" class="form-control" />
+                      <input type="text" name="product_description[<?php echo $language['language_id']; ?>][name]" value="<?php echo isset($product_description[$language['language_id']]) ? $product_description[$language['language_id']]['name'] : ''; ?>" placeholder="Название товары" id="input-name<?php echo $language['language_id']; ?>" class="form-control" required minlength="3" maxlength="255" />
                       <?php if (isset($error_name[$language['language_id']])) { ?>
                       <div class="text-danger"><?php echo $error_name[$language['language_id']]; ?></div>
                       <?php } ?>
@@ -122,13 +119,27 @@
               </div>
              
 
+              <div class="form-group required">
+                <label class="col-sm-2 control-label" for="input-location"><?php echo $entry_city; ?></label>
+                <div class="col-sm-10">
+                  <select name="location" id="input-location" class="form-control" required="required">
+                    <option value=""><?php echo $text_city_select; ?></option>
+                    <?php foreach ($cities as $city_code => $city_name) { ?>
+                    <option value="<?php echo $city_code; ?>"<?php echo ($city_code == $location ? ' selected="selected"' : ''); ?>><?php echo $city_name; ?></option>
+                    <?php } ?>
+                  </select>
+                  <?php if ($error_city) { ?>
+                  <div class="text-danger"><?php echo $error_city; ?></div>
+                  <?php } ?>
+                </div>
+              </div>
           <?php echo $easyphoto_form; ?>
         
            
        <div class="form-group required">
                 <label class="col-sm-2 control-label" for="input-model">Артикул</label>
                 <div class="col-sm-10">
-                  <input type="text" name="model" value="<?php echo $model; ?>" placeholder="артикул" id="input-model" class="form-control" />
+                  <input type="text" name="model" value="<?php echo $model; ?>" placeholder="артикул" id="input-model" class="form-control" required maxlength="64" />
                   <?php if ($error_model) { ?>
                   <div class="text-danger"><?php echo $error_model; ?></div>
                   <?php } ?>
@@ -139,18 +150,20 @@
                 <label class="col-sm-2 control-label" for="input-price"><?php echo $entry_price; ?></label>
                 <div class="col-sm-10">
                   <div class="input-group">
-                    <input type="text" name="price" value="<?php echo $price; ?>" placeholder="<?php echo $entry_price; ?>" id="input-price" class="form-control" />
+                    <input type="text" name="price" value="<?php echo htmlspecialchars((string)$price, ENT_QUOTES, 'UTF-8'); ?>" placeholder="<?php echo $entry_price; ?>" id="input-price" class="form-control" required inputmode="decimal" pattern="([0-9]+([.][0-9]*)?|[.][0-9]+)([eE][+\-]?[0-9]+)?" title="Неотрицательная цена в риалах" />
                     <span class="input-group-addon"><?php echo $text_currency_sar; ?></span>
                   </div>
+                  <?php if ($error_price) { ?><div class="text-danger"><?php echo $error_price; ?></div><?php } ?>
                 </div>
               </div>
 <div class="form-group">
-                <label class="col-sm-2 control-label" for="input-price">цена по акции</label>
+                <label class="col-sm-2 control-label" for="input-price-special">цена по акции</label>
                 <div class="col-sm-10">
                   <div class="input-group">
-                    <input type="text" name="pricespeclial" value="<?php echo $pricespeclial; ?>" placeholder="цена по акции" id="input-price-special" class="form-control" />
+                    <input type="text" name="pricespeclial" value="<?php echo htmlspecialchars((string)$pricespeclial, ENT_QUOTES, 'UTF-8'); ?>" placeholder="цена по акции" id="input-price-special" class="form-control" inputmode="decimal" pattern="([0-9]+([.][0-9]*)?|[.][0-9]+)([eE][+\-]?[0-9]+)?" title="Неотрицательная цена в риалах" />
                     <span class="input-group-addon"><?php echo $text_currency_sar; ?></span>
                   </div>
+                  <?php if ($error_pricespeclial) { ?><div class="text-danger"><?php echo $error_pricespeclial; ?></div><?php } ?>
                 </div>
               </div>        
         
@@ -212,7 +225,8 @@
 			          <div class="form-group">
                 <label class="col-sm-2 control-label" for="input-keyword"><span data-toggle="tooltip" title="<?php echo $help_keyword; ?>"><?php echo $entry_keyword; ?></span></label>
                 <div class="col-sm-10">
-                  <input type="text" name="keyword" value="<?php echo $keyword; ?>" placeholder="<?php echo $entry_keyword; ?>" id="input-keyword" class="form-control" />
+                  <input type="text" value="<?php echo htmlspecialchars((string)$keyword, ENT_QUOTES, 'UTF-8'); ?>" id="input-keyword" class="form-control" readonly />
+                  <p class="help-block">SEO-адрес создаётся автоматически при сохранении товара.</p>
                   <?php if ($error_keyword) { ?>
                   <div class="text-danger"><?php echo $error_keyword; ?></div>
                   <?php } ?>
@@ -237,6 +251,7 @@
                 <label class="col-sm-2 control-label" for="input-category"><span data-toggle="tooltip" title="<?php echo $help_category; ?>"><?php echo $entry_category; ?></span></label>
                 <div class="col-sm-10">
                   <input type="text" name="category" value="" placeholder="<?php echo $entry_category; ?>" id="input-category" class="form-control" />
+                  <?php if ($error_category) { ?><div class="text-danger"><?php echo $error_category; ?></div><?php } ?>
                   <div id="product-category" class="well well-sm" style="height: 150px; overflow: auto;">
                     <?php foreach ($product_categories as $product_category) { ?>
                     <div id="product-category<?php echo $product_category['category_id']; ?>"><i class="fa fa-minus-circle"></i> <?php echo $product_category['name']; ?>
@@ -272,7 +287,7 @@
         
       </div>
 
-      <div class="tab-pane" id="tab-datahh">
+      <div class="tab-pane" id="tab-data">
       <div class="form-group">
         <label class="col-sm-2 control-label" for="input-sticker"><?php echo $entry_sticker; ?></label>
         <div class="col-sm-10">
@@ -368,20 +383,7 @@
                   <input type="text" name="mpn" value="<?php echo $mpn; ?>" placeholder="<?php echo $entry_mpn; ?>" id="input-mpn" class="form-control" />
                 </div>
               </div>
-              <div class="form-group required">
-                <label class="col-sm-2 control-label" for="input-location"><?php echo $entry_city; ?></label>
-                <div class="col-sm-10">
-                  <select name="location" id="input-location" class="form-control" required="required">
-                    <option value=""><?php echo $text_city_select; ?></option>
-                    <?php foreach ($cities as $city_code => $city_name) { ?>
-                    <option value="<?php echo $city_code; ?>"<?php echo ($city_code == $location ? ' selected="selected"' : ''); ?>><?php echo $city_name; ?></option>
-                    <?php } ?>
-                  </select>
-                  <?php if ($error_city) { ?>
-                  <div class="text-danger"><?php echo $error_city; ?></div>
-                  <?php } ?>
-                </div>
-              </div>
+
               
               <div class="form-group">
                 <label class="col-sm-2 control-label" for="input-tax-class"><?php echo $entry_tax_class; ?></label>
@@ -1724,7 +1726,7 @@ $('.datetime').datetimepicker({
 });
 //--></script>
   <script type="text/javascript"><!--
-$('#language a:first').tab('show');
+
 $('#option a:first').tab('show');
 //--></script>
 <script type="text/javascript"><!--
