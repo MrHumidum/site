@@ -1,0 +1,51 @@
+#search{
+	padding-top: 10px;
+	padding-bottom: 180px;
+}
+.search_head{
+	display: -webkit-box;
+	display: -ms-flexbox;
+	display: flex;
+	-webkit-box-pack: justify;
+	    -ms-flex-pack: justify;
+	        justify-content: space-between;
+	-webkit-box-align: center;
+	    -ms-flex-align: center;
+	        align-items: center;
+}
+.search_head p{
+	font-size: 14px;
+	line-height: 1;
+	color: #999999;
+	-ms-flex-negative: 0;
+	    flex-shrink: 0;
+}
+.search_head p span{
+	padding-left: 9px;
+	font-weight: bold;
+	font-size: 14px;
+	line-height: 1;
+	color: #000000;
+}
+.search_card_list{
+	margin-top: 50px;
+	display: -webkit-box;
+	display: -ms-flexbox;
+	display: flex;
+	-webkit-box-pack: start;
+	    -ms-flex-pack: start;
+	        justify-content: flex-start;
+	-webkit-box-align: start;
+	    -ms-flex-align: start;
+	        align-items: flex-start;
+	-ms-flex-wrap: wrap;
+	    flex-wrap: wrap;
+}
+.search_card_item{
+	width: calc( (100% / 4) - (90px / 4) );
+	margin-right: 30px;
+	margin-bottom: 30px;
+}
+.search_card_item:nth-child(4n){
+	margin-right: 0;
+}

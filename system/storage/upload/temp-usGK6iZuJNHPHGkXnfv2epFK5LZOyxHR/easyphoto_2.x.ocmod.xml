@@ -1,0 +1,80 @@
+<modification>
+	<name>EasyPhoto 3.1</name>
+	<code>EasyPhoto</code>
+	<version>3.1</version>
+	<author>PROWEBBER</author>
+	<link><![CDATA[https://prowebber.ru/]]></link>
+
+  <file path="admin/view/template/common/header.tpl">
+    <operation>
+        <search><![CDATA[<script type="text/javascript" src="view/javascript/bootstrap/js/bootstrap.min.js"></script>]]></search>
+				<add position="before"><![CDATA[
+					<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+					<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-switch/3.3.2/js/bootstrap-switch.min.js"></script>
+					<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-switch/3.3.2/css/bootstrap2/bootstrap-switch.min.css" />
+				]]></add>
+    </operation>
+	</file>
+
+  <file path="admin/controller/catalog/product.php">
+    <operation>
+        <search><![CDATA[$this->load->model('design/layout');]]></search>
+        <add position="before"><![CDATA[$data['easyphoto_form'] = $this->load->controller('module/easyphoto/getForm', $data);]]></add>
+    </operation>
+	</file>
+
+	<file path="admin/model/catalog/product.php">
+    <operation>
+        <search index="0"><![CDATA[if (isset($data['product_image'])) {]]></search>
+        <add position="replace"><![CDATA[
+					/* ++ easyphoto */
+					if(!isset($data['copy_flag'])){
+						if (isset($data['image'])) {
+							$easyphoto_data = array('image' => $data['image'], 'product_id' => $product_id);
+							$data['image'] = $this->load->controller('module/easyphoto/resize_rename', $easyphoto_data);
+							$this->db->query("UPDATE " . DB_PREFIX . "product SET image = '" . $this->db->escape($data['image']) . "' WHERE product_id = '" . (int)$product_id . "'");
+						}
+						if (isset($data['product_image'])) {
+							foreach ($data['product_image'] as $product_image) {
+								$easyphoto_data = array('image' => $product_image['image'], 'product_id' => $product_id);
+								$product_image['image'] = $this->load->controller('module/easyphoto/resize_rename', $easyphoto_data);
+								$this->db->query("INSERT INTO " . DB_PREFIX . "product_image SET product_id = '" . (int)$product_id . "', image = '" . $this->db->escape($product_image['image']) . "', sort_order = '" . (int)$product_image['sort_order'] . "'");
+							}
+						}
+					}else{
+					/* -- easyphoto */
+	       ]]></add>
+    </operation>
+		<operation>
+        <search><![CDATA[$this->addProduct($data);]]></search>
+        <add position="before"><![CDATA[
+					/* ++ easyphoto */
+					$data['copy_flag'] = true;
+					/* -- easyphoto */
+	       ]]></add>
+    </operation>
+		<operation>
+        <search><![CDATA[$data['product_image'] = $this->getProductImages($product_id);]]></search>
+        <add position="replace"><![CDATA[
+					/* ++ easyphoto */
+					//$data['product_image'] = $this->getProductImages($product_id);
+					$data['product_image'] = array();
+					/* -- easyphoto */
+	       ]]></add>
+    </operation>
+	</file>
+
+	<file path="admin/view/template/catalog/product_form.tpl">
+    <operation error="skip">
+        <search><![CDATA[<li><a href="#tab-data" data-toggle="tab"><?php echo $tab_data; ?></a></li>]]></search>
+        <add position="before"><![CDATA[<li><a href="#tab-easyphoto" data-toggle="tab">Easyphoto</a></li>]]></add>
+   </operation>
+
+    <operation error="skip">
+        <search><![CDATA[<div class="tab-pane" id="tab-data">]]></search>
+        <add position="before"><![CDATA[
+					<?php echo $easyphoto_form; ?>
+	      ]]></add>
+    </operation>
+	</file>>
+</modification>

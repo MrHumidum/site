@@ -1,0 +1,14 @@
+/* Haramain category navigation and manual transfer additions. */
+.hm-subcategories{margin:6px 0 12px;font-size:13px;color:#ccc}
+.hm-subcategories summary{cursor:pointer;color:#efa280;padding:4px 0}
+.hm-subcategories ul{padding:8px 0 0 12px!important}
+.d_menu_dop-menu{max-height:75vh;overflow-y:auto}
+.bt_instructions p{margin:8px 0}
+#bt-paid{border:0;padding:14px 28px;border-radius:30px;background:#ee4b18;color:#fff;font:inherit;cursor:pointer}
+#bt-paid:disabled{opacity:.5;cursor:default}
+#bt-receipt-step[hidden]{display:none!important}
+.bt_card_info{min-width:0}.bt_card_number{overflow-wrap:anywhere}
+#custom-confirm .table-responsive{overflow-x:auto}
+@media(max-width:600px){.bank-transfer{min-width:0}.bt_instructions{padding:16px!important}#bt-paid{width:100%}.bt_card{gap:10px}.bt_card_info{width:100%}.sar-price{font-size:inherit}}
+
+.bank-transfer #button-confirm{max-width:100%;white-space:normal;line-height:1.4;height:auto;padding:12px 18px;font-size:15px}
