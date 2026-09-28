@@ -23,7 +23,9 @@ class ControllerAddImage extends Controller {
                 throw new RuntimeException('Обновите страницу и войдите в кабинет продавца.');
             }
             $file = $this->request->files['file'] ?? array();
-            $upload_error = is_array($file) ? ($file['error'] ?? UPLOAD_ERR_NO_FILE) : UPLOAD_ERR_NO_FILE;
+            // Request::clean() converts scalar upload fields to strings.
+            $upload_error = is_array($file) && isset($file['error']) && is_scalar($file['error'])
+                ? (int)$file['error'] : UPLOAD_ERR_NO_FILE;
             $upload_errors = array(
                 UPLOAD_ERR_INI_SIZE => 'Файл превышает лимит загрузки сервера (' . ini_get('upload_max_filesize') . '). Выберите файл меньшего размера, до 10 МБ.',
                 UPLOAD_ERR_FORM_SIZE => 'Файл превышает допустимый размер. Выберите JPG или PNG до 10 МБ.',
@@ -33,12 +35,18 @@ class ControllerAddImage extends Controller {
                 UPLOAD_ERR_CANT_WRITE => 'Сервер не смог записать загруженный файл. Обратитесь в поддержку.',
                 UPLOAD_ERR_EXTENSION => 'Загрузка остановлена расширением сервера. Обратитесь в поддержку.'
             );
-            if (!is_int($upload_error) || $upload_error !== UPLOAD_ERR_OK) {
-                throw new RuntimeException(is_int($upload_error) && isset($upload_errors[$upload_error])
-                    ? $upload_errors[$upload_error] : 'Не удалось принять файл. Повторите попытку.');
+            if ($upload_error !== UPLOAD_ERR_OK) {
+                throw new RuntimeException(isset($upload_errors[$upload_error])
+                    ? $upload_errors[$upload_error] : 'Неизвестная ошибка загрузки файла (код ' . $upload_error . ').');
             }
-            if (!isset($file['tmp_name']) || !is_string($file['tmp_name']) || !is_uploaded_file($file['tmp_name'])) {
-                throw new RuntimeException('Не удалось принять файл. Повторите попытку.');
+            if (empty($file['tmp_name']) || !is_string($file['tmp_name'])) {
+                throw new RuntimeException('PHP не передал временный файл загрузки.');
+            }
+            if (!is_file($file['tmp_name'])) {
+                throw new RuntimeException('Временный файл загрузки не найден.');
+            }
+            if (!is_uploaded_file($file['tmp_name'])) {
+                throw new RuntimeException('PHP не распознал файл как HTTP-загрузку.');
             }
             $size = @filesize($file['tmp_name']);
             if ($size === false || $size < 1 || $size > 10485760) {
