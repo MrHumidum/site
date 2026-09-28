@@ -5,15 +5,40 @@ class ControllerAddImage extends Controller {
         $image = false;
         $path = null;
         try {
+            // PHP discards both POST fields and files when post_max_size is exceeded.
+            $post_limit = trim(ini_get('post_max_size'));
+            $post_bytes = (float)$post_limit;
+            switch (strtolower(substr($post_limit, -1))) {
+                case 'g': $post_bytes *= 1024;
+                case 'm': $post_bytes *= 1024;
+                case 'k': $post_bytes *= 1024;
+            }
+            if ($this->seller->isLogged() && ($this->request->server['REQUEST_METHOD'] ?? '') === 'POST'
+                && $post_bytes > 0 && (float)($this->request->server['CONTENT_LENGTH'] ?? 0) > $post_bytes) {
+                throw new RuntimeException('Размер запроса превышает лимит сервера (' . $post_limit . '). Выберите файл меньшего размера, до 10 МБ.');
+            }
             $token = $this->request->post['token'] ?? '';
             if (!$this->seller->isLogged() || ($this->request->server['REQUEST_METHOD'] ?? '') !== 'POST'
                 || !is_string($token) || empty($this->session->data['token']) || !hash_equals($this->session->data['token'], $token)) {
                 throw new RuntimeException('Обновите страницу и войдите в кабинет продавца.');
             }
             $file = $this->request->files['file'] ?? array();
-            if (!is_array($file) || !isset($file['tmp_name']) || !is_string($file['tmp_name'])
-                || !is_uploaded_file($file['tmp_name']) || ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
-                throw new RuntimeException('Выберите JPG или PNG размером до 10 МБ.');
+            $upload_error = is_array($file) ? ($file['error'] ?? UPLOAD_ERR_NO_FILE) : UPLOAD_ERR_NO_FILE;
+            $upload_errors = array(
+                UPLOAD_ERR_INI_SIZE => 'Файл превышает лимит загрузки сервера (' . ini_get('upload_max_filesize') . '). Выберите файл меньшего размера, до 10 МБ.',
+                UPLOAD_ERR_FORM_SIZE => 'Файл превышает допустимый размер. Выберите JPG или PNG до 10 МБ.',
+                UPLOAD_ERR_PARTIAL => 'Файл загружен не полностью. Повторите попытку.',
+                UPLOAD_ERR_NO_FILE => 'Выберите JPG или PNG размером до 10 МБ.',
+                UPLOAD_ERR_NO_TMP_DIR => 'На сервере недоступна временная папка загрузки. Обратитесь в поддержку.',
+                UPLOAD_ERR_CANT_WRITE => 'Сервер не смог записать загруженный файл. Обратитесь в поддержку.',
+                UPLOAD_ERR_EXTENSION => 'Загрузка остановлена расширением сервера. Обратитесь в поддержку.'
+            );
+            if (!is_int($upload_error) || $upload_error !== UPLOAD_ERR_OK) {
+                throw new RuntimeException(is_int($upload_error) && isset($upload_errors[$upload_error])
+                    ? $upload_errors[$upload_error] : 'Не удалось принять файл. Повторите попытку.');
+            }
+            if (!isset($file['tmp_name']) || !is_string($file['tmp_name']) || !is_uploaded_file($file['tmp_name'])) {
+                throw new RuntimeException('Не удалось принять файл. Повторите попытку.');
             }
             $size = @filesize($file['tmp_name']);
             if ($size === false || $size < 1 || $size > 10485760) {
@@ -42,7 +67,8 @@ class ControllerAddImage extends Controller {
             }
             $path = $dir . bin2hex(random_bytes(16)) . ($mime === 'image/png' ? '.png' : '.jpg');
             $saved = $mime === 'image/png' ? @imagepng($image, DIR_IMAGE . $path) : @imagejpeg($image, DIR_IMAGE . $path, 90);
-            if (!$saved) { throw new RuntimeException('Не удалось сохранить фотографию. Повторите попытку позже.'); }
+            clearstatcache(true, DIR_IMAGE . $path);
+            if (!$saved || !is_file(DIR_IMAGE . $path) || @filesize(DIR_IMAGE . $path) < 1) { throw new RuntimeException('Не удалось сохранить фотографию. Повторите попытку позже.'); }
             $json['path'] = $path;
         } catch (RuntimeException $e) {
             $json['error'] = $e->getMessage();
