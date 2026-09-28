@@ -34,7 +34,7 @@ $mail = new Mail();
 			$mail->smtp_timeout = $this->config->get('config_mail_smtp_timeout');
 $cupon = $this->model_account_order->getRandomString(5);
 $this->model_account_order->addCouponV($cupon);
-$mess = 'У вас остался незавершенный заказ на сайте prokonkurs.com. Для завершения покупки перейдите по ссылке и получите скидку
+$mess = 'У вас остался незавершенный заказ на сайте haramain.online. Для завершения покупки перейдите по ссылке и получите скидку
 <a href="'.HTTPS_CATALOG.'?mycart='.$orderid.'&cupon='.$cupon.'">перейти к заказу</a>';
 
 echo $orderid;
@@ -42,7 +42,7 @@ $this->model_account_order->updateOrder($orderid);
 
 $mail->setTo($order['email']);
 			$mail->setFrom($this->config->get('config_email'));
-			$mail->setSender(html_entity_decode('prokonkurs.com', ENT_QUOTES, 'UTF-8'));
+			$mail->setSender(html_entity_decode('haramain.online', ENT_QUOTES, 'UTF-8'));
 			$mail->setSubject(html_entity_decode(sprintf('Завершите покупку', $order['firstname']), ENT_QUOTES, 'UTF-8'));
 			$mail->setHtml($mess);
 			$mail->setText('');

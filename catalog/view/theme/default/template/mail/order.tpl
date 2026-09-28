@@ -41,8 +41,8 @@
                             <tr style="border-color:transparent;color:#444;font-family:'arial','helvetica neue','helvetica',sans-serif">
                               <td valign="top" width="600" style="border-collapse:collapse;border-color:transparent;padding:0;vertical-align:top;word-break:break-word">
                                 <div style="box-sizing:border-box;font-size:14px;height:96;line-height:1.2;width:100%">
-                                  <a href="https://prokonkurs.com/" rel="noopener noreferrer" style="box-sizing:border-box;color:#0089bf;text-decoration:none" target="_blank" data-saferedirecturl="https://www.google.com/url?q=https://prokonkurs.com/&amp;source=gmail&amp;ust=1650378638644000&amp;usg=AOvVaw3mj9dXf-Af0nhLrgXsNdJt">
-                                    <img align="left" alt="logo" border="0" src="https://prokonkurs.com/image/mail.jpg" width="600" style="border:0;box-sizing:border-box;height:auto;line-height:100%;margin:0;text-decoration:none" class="CToWUd">
+                                  <a href="https://haramain.online/" rel="noopener noreferrer" style="box-sizing:border-box;color:#0089bf;text-decoration:none" target="_blank" data-saferedirecturl="https://www.google.com/url?q=https://haramain.online/&amp;source=gmail&amp;ust=1650378638644000&amp;usg=AOvVaw3mj9dXf-Af0nhLrgXsNdJt">
+                                    <img align="left" alt="logo" border="0" src="https://haramain.online/image/mail.jpg" width="600" style="border:0;box-sizing:border-box;height:auto;line-height:100%;margin:0;text-decoration:none" class="CToWUd">
                                   </a>
                                 </div>
                                 <div style="box-sizing:border-box;clear:both;font-size:14px;line-height:1.2">
@@ -177,7 +177,7 @@
   <tbody>
     <tr>
       <td align="center" style="padding:10px 30px;">
-        <a href="https://prokonkurs.com/" target="_blank" style="display:inline-block;background:#ff6500;color:#fff;padding:13px 20px;text-decoration:none;border-radius:20px;font-weight:bold;">
+        <a href="https://haramain.online/" target="_blank" style="display:inline-block;background:#ff6500;color:#fff;padding:13px 20px;text-decoration:none;border-radius:20px;font-weight:bold;">
           Выбрать ещё товары и конкурсы на сайте
         </a>
       </td>

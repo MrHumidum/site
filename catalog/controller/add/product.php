@@ -595,7 +595,7 @@ $data['acc'] = $this->load->controller('extension/module/seller');
 
 		$data['breadcrumbs'][] = array(
 			'text' => $this->language->get('text_home'),
-			'href' => 'https://prokonkurs.com/'
+			'href' => 'https://haramain.online/'
 		);
 
 		$data['breadcrumbs'][] = array(
@@ -1175,7 +1175,7 @@ $data['acc'] = $this->load->controller('extension/module/seller');
 
 		$data['breadcrumbs'][] = array(
 			'text' => $this->language->get('text_home'),
-				'href' => 'https://prokonkurs.com/'
+				'href' => 'https://haramain.online/'
 		);
 
 		$data['breadcrumbs'][] = array(
