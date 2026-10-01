@@ -78,6 +78,9 @@ class ControllerAddImage extends Controller {
             clearstatcache(true, DIR_IMAGE . $path);
             if (!$saved || !is_file(DIR_IMAGE . $path) || @filesize(DIR_IMAGE . $path) < 1) { throw new RuntimeException('Не удалось сохранить фотографию. Повторите попытку позже.'); }
             $json['path'] = $path;
+            // Match the application's image URL contract; never resolve against the seller route.
+            $base = $this->config->get(!empty($this->request->server['HTTPS']) ? 'config_ssl' : 'config_url');
+            $json['url'] = rtrim($base, '/') . '/image/' . $path;
         } catch (RuntimeException $e) {
             $json['error'] = $e->getMessage();
         } catch (Throwable $e) {
